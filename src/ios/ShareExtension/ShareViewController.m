@@ -132,9 +132,25 @@
     [self setup];
     [self debug:@"[didSelectPost]"];
 
+    NSItemProvider* itemProvider;
+    NSArray* attachments = ((NSExtensionItem*)self.extensionContext.inputItems[0]).attachments;
+    if (attachments.count > 1){
+        NSItemProvider* shareItemProvider = attachments[1];
+         if ([shareItemProvider hasItemConformingToTypeIdentifier:@"public.url"] && ![shareItemProvider hasItemConformingToTypeIdentifier:@"public.content"]){
+             NSLog(@"IS SHARING FROM APP STORE LINK!");
+             itemProvider = shareItemProvider;
+         }
+    }
+    
+    if (itemProvider == nil){
+         for (NSItemProvider* shareItemProvider in ((NSExtensionItem*)self.extensionContext.inputItems[0]).attachments) {
+             itemProvider = shareItemProvider;
+             break;
+         }
+    }
+    
     // This is called after the user selects Post. Do the upload of contentText and/or NSExtensionContext attachments.
-    for (NSItemProvider* itemProvider in ((NSExtensionItem*)self.extensionContext.inputItems[0]).attachments) {
-        
+    if (itemProvider != nil) {
         if ([itemProvider hasItemConformingToTypeIdentifier:SHAREEXT_UNIFORM_TYPE_IDENTIFIER]) {
             [self debug:[NSString stringWithFormat:@"item provider = %@", itemProvider]];
             
@@ -195,6 +211,7 @@
     // Inform the host that we're done, so it un-blocks its UI.
     [self.extensionContext completeRequestReturningItems:@[] completionHandler:nil];
 }
+
 
 - (void) finishSelectingPost:(NSItemProvider*)itemProvider data:(NSData*)data urlString:(NSString*)urlString {
     NSString *suggestedName = @"";
