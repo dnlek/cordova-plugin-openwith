@@ -90,11 +90,14 @@ class Serializer {
             throws JSONException {
         if (clipData != null) {
             final int clipItemCount = clipData.getItemCount();
-            JSONObject[] items = new JSONObject[clipItemCount];
+            JSONArray items = new JSONArray();
             for (int i = 0; i < clipItemCount; i++) {
-                items[i] = toJSONObject(contentResolver, clipData.getItemAt(i).getUri());
+                if (clipData.getItemAt(i).getUri() != null) {
+                    items.put(toJSONObject(contentResolver, clipData.getItemAt(i).getUri()));
+                }
             }
-            return new JSONArray(items);
+
+            return items;
         }
         return null;
     }
@@ -132,8 +135,8 @@ class Serializer {
         if (!TextUtils.isEmpty(text) || !TextUtils.isEmpty(subject)) {
             final JSONObject item = new JSONObject();
             item.put("type", "text/plain");
-            item.put("text", text);
-            item.put("urlString", subject);
+            item.put("text", subject);
+            item.put("urlString", text);
             final JSONObject[] items = new JSONObject[1];
             items[0] = item;
             return new JSONArray(items);
