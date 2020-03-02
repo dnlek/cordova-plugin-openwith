@@ -253,19 +253,17 @@
     
     // Emit a URL that opens the cordova app
     NSString *url = [NSString stringWithFormat:@"%@://image", SHAREEXT_URL_SCHEME];
-    
-    // Not allowed:
-    // [[UIApplication sharedApplication] openURL:[NSURL URLWithString:url]];
-    
-    // Crashes:
-    // [self.extensionContext openURL:[NSURL URLWithString:url] completionHandler:nil];
-    
-    // From https://stackoverflow.com/a/25750229/2343390
-    // Reported not to work since iOS 8.3
-    // NSURLRequest *request = [[NSURLRequest alloc] initWithURL:[NSURL URLWithString:url]];
-    // [self.webView loadRequest:request];
-    
     [self openURL:[NSURL URLWithString:url]];
+
+    double delayInSeconds = 1.5;
+    dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
+    dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+        NSTimeInterval  today = [[NSDate date] timeIntervalSince1970];
+        NSString *intervalString = [NSString stringWithFormat:@"%f", today];
+      
+        [self.userDefaults setObject:intervalString forKey:@"dismissedShareExtension"];
+        [self.userDefaults synchronize];
+    });
     
     // Inform the host that we're done, so it un-blocks its UI.
     [self.extensionContext completeRequestReturningItems:@[] completionHandler:nil];

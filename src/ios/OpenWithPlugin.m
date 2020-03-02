@@ -133,16 +133,14 @@ static NSDictionary* launchOptions = nil;
     // You can listen to more app notifications, see:
     // http://developer.apple.com/library/ios/#DOCUMENTATION/UIKit/Reference/UIApplication_Class/Reference/Reference.html#//apple_ref/doc/uid/TP40006728-CH3-DontLinkElementID_4
 
-    // NOTE: if you want to use these, make sure you uncomment the corresponding notification handler
-
-    // [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onPause) name:UIApplicationDidEnterBackgroundNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onResume) name:UIApplicationWillEnterForegroundNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(defaultsChanged:) name:NSUserDefaultsDidChangeNotification object:nil];
+    
+    // NOTE: if you want to use these, make sure you uncomment the corresponding notification handler
+    // [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onPause) name:UIApplicationDidEnterBackgroundNotification object:nil];
     // [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onOrientationWillChange) name:UIApplicationWillChangeStatusBarOrientationNotification object:nil];
     // [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onOrientationDidChange) name:UIApplicationDidChangeStatusBarOrientationNotification object:nil];
-
-    // Added in 2.5.0
     // [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(pageDidLoad:) name:CDVPageDidLoadNotification object:self.webView];
-    //Added in 4.3.0
     // [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(viewWillAppear:) name:CDVViewWillAppearNotification object:nil];
     // [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(viewDidAppear:) name:CDVViewDidAppearNotification object:nil];
     // [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(viewWillDisappear:) name:CDVViewWillDisappearNotification object:nil];
@@ -152,6 +150,16 @@ static NSDictionary* launchOptions = nil;
     // [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(viewWillTransitionToSize:) name:CDVViewWillTransitionToSizeNotification object:nil];
     [self onReset];
     [self info:@"[pluginInitialize] OK"];
+}
+
+- (void)defaultsChanged:(NSNotification *)notification {
+  // Get the user defaults
+  NSUserDefaults *defaults = (NSUserDefaults *)[notification object];
+
+  NSLog(@"%@", [defaults objectForKey:@"dismissedShareExtension"]);
+  if ([defaults objectForKey:@"dismissedShareExtension"] != nil){
+      [self checkForFileToShare];
+  }
 }
 
 - (void) onReset {
