@@ -82,39 +82,33 @@
 }
 
 - (void) openURL:(nonnull NSURL *)url {
-    if (@available(iOS 13.0, *)) {
-        SEL selector = NSSelectorFromString(@"openURL:");
-        
-        UIResponder* responder = self;
-        while ((responder = [responder nextResponder]) != nil) {
-            NSLog(@"responder = %@", responder);
-            if([responder respondsToSelector:selector] == true) {
-                NSMethodSignature *methodSignature = [responder methodSignatureForSelector:selector];
-                NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
+
+    SEL selector = NSSelectorFromString(@"openURL:options:completionHandler:");
+
+    UIResponder* responder = self;
+    while ((responder = [responder nextResponder]) != nil) {
+        NSLog(@"responder = %@", responder);
+        if([responder respondsToSelector:selector] == true) {
+            NSMethodSignature *methodSignature = [responder methodSignatureForSelector:selector];
+            NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
+
+            // Arguments
+            void (^completion)(BOOL success) = ^void(BOOL success) {
+                NSLog(@"Completions block: %i", success);
+            };
+            if (@available(iOS 13.0, *)) {
+                UISceneOpenExternalURLOptions * options = [[UISceneOpenExternalURLOptions alloc] init];
+                options.universalLinksOnly = false;
                 
                 [invocation setTarget: responder];
                 [invocation setSelector: selector];
                 [invocation setArgument: &url atIndex: 2];
-                
+                [invocation setArgument: &options atIndex:3];
+                [invocation setArgument: &completion atIndex: 4];
                 [invocation invoke];
                 break;
-            }
-        }
-    }else{
-        SEL selector = NSSelectorFromString(@"openURL:options:completionHandler:");
-        
-        UIResponder* responder = self;
-        while ((responder = [responder nextResponder]) != nil) {
-            NSLog(@"responder = %@", responder);
-            if([responder respondsToSelector:selector] == true) {
-                NSMethodSignature *methodSignature = [responder methodSignatureForSelector:selector];
-                NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
-                
-                // Arguments
+            } else {
                 NSDictionary<NSString *, id> *options = [NSDictionary dictionary];
-                void (^completion)(BOOL success) = ^void(BOOL success) {
-                    NSLog(@"Completions block: %i", success);
-                };
                 
                 [invocation setTarget: responder];
                 [invocation setSelector: selector];
